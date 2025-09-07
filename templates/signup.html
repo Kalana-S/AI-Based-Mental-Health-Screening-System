@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="{{ 'si' if g.lang == 'si' else 'en' }}">
+<head>
+  <meta charset="utf-8">
+  <title>
+    {% if g.lang=='si' %}ගිණුමක් සාදන්න – මානසික සෞඛ්‍ය තක්සේරුව{% else %}Sign up – Mental Health Screening{% endif %}
+  </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+    (function() {
+      const saved = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = saved || (prefersDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+      document.documentElement.setAttribute('data-bs-theme', theme);
+    })();
+  </script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/theme.css') }}" rel="stylesheet">
+</head>
+<body>
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card shadow-sm">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h1 class="h4 mb-0">
+                {% if g.lang=='si' %}ගිණුමක් සාදන්න{% else %}Create an account{% endif %}
+              </h1>
+              <div class="d-flex align-items-center gap-2">
+                {% if current_user.is_authenticated %}
+                  <a href="{{ url_for('user_panel') }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-person-badge me-1"></i>
+                    {% if g.lang=='si' %}පරිශීලක පැනල්{% else %}User Panel{% endif %}
+                  </a>
+                {% endif %}
+                <div class="btn-group">
+                  <a href="{{ url_for('set_language', code='en') }}"
+                     class="btn btn-sm btn-outline-secondary {% if g.lang == 'en' %}active{% endif %}">EN</a>
+                  <a href="{{ url_for('set_language', code='si') }}"
+                     class="btn btn-sm btn-outline-secondary {% if g.lang == 'si' %}active{% endif %}">සි</a>
+                </div>
+                <div class="btn-group" role="group" aria-label="Theme">
+                  <button id="themeLight" type="button" class="btn btn-sm btn-outline-secondary" title="Light">
+                    <i class="bi bi-sun"></i>
+                  </button>
+                  <button id="themeDark" type="button" class="btn btn-sm btn-outline-secondary" title="Dark">
+                    <i class="bi bi-moon-stars"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {% if error %}
+              <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
+
+            <form method="post">
+              {{ form.hidden_tag() }}
+              <div class="mb-3">
+                {{ form.name.label(class="form-label") }}
+                {{ form.name(class="form-control") }}
+              </div>
+              <div class="mb-3">
+                {{ form.email.label(class="form-label") }}
+                {{ form.email(class="form-control", placeholder="you@example.com") }}
+              </div>
+              <div class="mb-3">
+                {{ form.password.label(class="form-label") }}
+                {{ form.password(class="form-control") }}
+              </div>
+              <div class="mb-3">
+                {{ form.confirm.label(class="form-label") }}
+                {{ form.confirm(class="form-control") }}
+              </div>
+              <div class="d-grid">
+                {{ form.submit(class="btn btn-success") }}
+              </div>
+
+              <div class="mt-3">
+                {% if g.lang=='si' %}දැනටමත් ගිණුමක් තිබේද?{% else %}Already have an account?{% endif %}
+                <a href="{{ url_for('login') }}">
+                  {% if g.lang=='si' %}පිවිසෙන්න{% else %}Log in{% endif %}
+                </a>
+              </div>
+
+              <div class="mt-2 d-flex justify-content-between align-items-center">
+                <a href="{{ url_for('home') }}">← {% if g.lang=='si' %}මුල් පිටුවට ආපසු{% else %}Back to Home{% endif %}</a>
+                {% if current_user.is_authenticated %}
+                  <a href="{{ url_for('user_panel') }}" class="small">
+                    {% if g.lang=='si' %}පැනල් වෙත යන්න{% else %}Go to Panel{% endif %} →
+                  </a>
+                {% endif %}
+              </div>
+            </form>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    function setTheme(mode) {
+      document.documentElement.setAttribute('data-theme', mode);
+      document.documentElement.setAttribute('data-bs-theme', mode);
+      localStorage.setItem('theme', mode);
+    }
+    document.getElementById('themeLight').addEventListener('click', () => setTheme('light'));
+    document.getElementById('themeDark').addEventListener('click', () => setTheme('dark'));
+  </script>
+</body>
+</html>

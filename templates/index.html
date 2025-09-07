@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="{{ 'si' if g.lang == 'si' else 'en' }}">
+<head>
+  <meta charset="utf-8">
+  <title>{% if g.lang=='si' %}DASS-42 තක්සේරුව{% else %}DASS-42 Screening{% endif %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+    (function () {
+      const saved = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = saved || (prefersDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+      document.documentElement.setAttribute('data-bs-theme', theme);
+    })();
+  </script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/theme.css') }}" rel="stylesheet">
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+    .app-container { max-width: 1120px; margin: 0 auto; }
+    .q {
+      position: relative;
+      margin: 14px 0;
+      padding: 14px 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      transition: box-shadow .2s ease, transform .15s ease, border-color .2s ease, background-color .2s ease;
+    }
+    .q:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-1px);
+    }
+    .q:hover::after {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      pointer-events: none;
+    }
+    .q label { margin-bottom: 6px; display: inline-block; }
+    select {
+      min-width: 360px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      transition: box-shadow .15s ease, border-color .15s ease, background-color .2s ease, color .2s ease;
+    }
+    select:focus {
+      outline: none;
+      border-color: #6b8cff;
+      box-shadow: 0 0 0 3px rgba(107,140,255,.15);
+    }
+    .result {
+      margin-top: 26px;
+      padding: 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow-lg);
+    }
+    .cols {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px,1fr));
+      gap: 18px;
+    }
+    .box {
+      position: relative;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      transition: box-shadow .2s ease, transform .15s ease, border-color .2s ease, background-color .2s ease;
+    }
+    .box:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-1px);
+    }
+    .box:hover::after {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      pointer-events: none;
+    }
+    .muted { color: var(--muted); font-size: 0.92em; }
+    .probs { font-size: 0.95em; color: var(--text); margin-bottom: 14px; }
+    .bar {
+      height: 10px; background: #eaeaea; margin: 4px 0 10px 0;
+      position: relative; border-radius: 6px; overflow: hidden;
+    }
+    .bar > span {
+      display: block; height: 100%; background: #6b8cff; width: 0;
+      transition: width .35s ease;
+    }
+    .top-actions .btn-group .btn { line-height: 1; }
+    .alert-info, .alert-warning, .alert-danger { color: var(--text); }
+    .predict-btn { padding: 10px 16px; border-radius: 10px; }
+  </style>
+</head>
+<body>
+  {% set guest_id = session.get('anon_id') %}
+  {% if g.lang == 'si' %}
+    {% set opt1 = "1 - කිසිවිටෙකම මට අදාළ නොවීය" %}
+    {% set opt2 = "2 - යම් ප්‍රමාණයකට හෝ යම් කාලයකට මට අදාළ විය" %}
+    {% set opt3 = "3 - මට සැලකිය යුතු ප්‍රමාණයකට හෝ බොහෝ අවස්ථාවල අදාළ විය" %}
+    {% set opt4 = "4 - වැඩිම ප්‍රමාණයකට හෝ වැඩිම කාලයකට අදාළ විය" %}
+    {% set page_title = "DASS-42 මානසික සෞඛ්‍ය ප්‍රශ්නාවලිය" %}
+    {% set predict_txt = "ඇස්තමේන්තු කිරීම" %}
+    {% set save_txt = "පර්යේෂණ සහ ඉතිහාසය සඳහා මෙම ප්‍රතිඵලය මගේ ගිණුමට සුරකින්න." %}
+    {% set store_raw_txt = "විස්තරාත්මක පිළිතුරු (Q1–Q42) ද සුරකින්න" %}
+    {% set hist_btn = "ඉතිහාසය" %}
+    {% set login_btn = "පිවිසෙන්න" %}
+    {% set user_panel = "පුවරුව" %}
+    {% set home_btn = "මුල් පිටුව" %}
+    {% set pred_header = "ඇස්තමේන්තු (Predictions)" %}
+    {% set topq = "ඉහළම දායකත්වය සපයන ප්‍රශ්න" %}
+    {% set no_topq = "උචිත ලෙස දැක්විය හැකි ප්‍රශ්න නොමැත (ස්වභාවික මට්ටමට සමීප පිළිතුරු)." %}
+    {% set rule_hdr = "නියමයන් මත පදනම් වූ (DASS) වර්ගීකරණය" %}
+    {% set dep_lbl = "මානසික අවපීඩනය (Depression)" %}
+    {% set anx_lbl = "කාංසාව (Anxiety)" %}
+    {% set str_lbl = "ආතතිය (Stress)" %}
+    {% set limited_note = "සටහන: මෙම උප-මාපනයට ඔබ විසින් සපයා ඇති අසාමාන්‍ය පිළිතුරු සංඛ්‍යාව අඩුය. ප්‍රතිශතයන් ස්ථිර නොවිය හැකි බැවින් සම්මතකරණයක් යොදවා පෙන්වා ඇත." %}
+    {% set mismatch_note = "සටහන: යන්ත්‍ර-අධ්‍යයන ආදර්ශය (ML) ප්‍රශ්න 42ම එකම වාරයක සැලකේ. නමුත් DASS-42 නියම-මූලික වර්ගීකරණය සෑම උප-මාපනයකටම අදාල (14) ප්‍රශ්න පමණක් භාවිතා කරයි. එබැවින් දෙක අතර කලාතුරකින් වෙනසක් දක්නට ලැබිය හැක." %}
+  {% else %}
+    {% set opt1 = "1 - Did not apply to me at all" %}
+    {% set opt2 = "2 - Applied to me to some degree, or some of the time" %}
+    {% set opt3 = "3 - Applied to me to a considerable degree, or a good part of the time" %}
+    {% set opt4 = "4 - Applied to me very much, or most of the time" %}
+    {% set page_title = "DASS-42 Mental Health Questionnaire" %}
+    {% set predict_txt = "Predict" %}
+    {% set save_txt = "Save this result to my account for research and history" %}
+    {% set store_raw_txt = "Also store my detailed answers (Q1–Q42)" %}
+    {% set hist_btn = "History" %}
+    {% set login_btn = "Log in" %}
+    {% set user_panel = "User Panel" %}
+    {% set home_btn = "Home" %}
+    {% set pred_header = "Predictions" %}
+    {% set topq = "Top contributing questions:" %}
+    {% set no_topq = "No standout contributing questions (baseline or very small effects)." %}
+    {% set rule_hdr = "Rule-based (DASS) categories" %}
+    {% set dep_lbl = "Depression" %}
+    {% set anx_lbl = "Anxiety" %}
+    {% set str_lbl = "Stress" %}
+    {% set limited_note = "Note: Few non-baseline answers in this subscale. Percentages are smoothed to avoid overconfidence with limited evidence." %}
+    {% set mismatch_note = "Note: The ML model uses all 42 items together, while the DASS rule uses only the 14 items of each subscale. Differences can occur." %}
+  {% endif %}
+
+  <div class="container mt-3 app-container">
+    <div class="d-flex justify-content-between align-items-center">
+      <h2 class="m-0">{{ page_title }}</h2>
+      <div class="d-flex gap-2 top-actions">
+        {% if current_user.is_authenticated %}
+          <a class="btn btn-outline-primary btn-sm" href="{{ url_for('user_panel') }}">{{ user_panel }}</a>
+          <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('history') }}">{{ hist_btn }}</a>
+          <a class="btn btn-outline-warning btn-sm" href="{{ url_for('dashboard') }}">
+            {% if g.lang == 'si' %}ප්ලොට්{% else %}Plots{% endif %}
+          </a>
+        {% elif guest_id %}
+          <a class="btn btn-outline-info btn-sm" href="{{ url_for('home') }}">{{ home_btn }}</a>
+          <a class="btn btn-outline-primary btn-sm" href="{{ url_for('login') }}">{{ login_btn }}</a>
+        {% else %}
+          <a class="btn btn-outline-success btn-sm" href="{{ url_for('login') }}">{{ login_btn }}</a>
+        {% endif %}
+        <div class="btn-group">
+          <a href="{{ url_for('set_language', code='en') }}" class="btn btn-sm btn-outline-secondary {% if g.lang == 'en' %}active{% endif %}">EN</a>
+          <a href="{{ url_for('set_language', code='si') }}" class="btn btn-sm btn-outline-secondary {% if g.lang == 'si' %}active{% endif %}">සි</a>
+        </div>
+        <div class="btn-group" role="group" aria-label="Theme">
+          <button id="themeLight" type="button" class="btn btn-sm btn-outline-secondary" title="Light">
+            <i class="bi bi-sun"></i>
+          </button>
+          <button id="themeDark" type="button" class="btn btn-sm btn-outline-secondary" title="Dark">
+            <i class="bi bi-moon-stars"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-3">
+      <div>
+        {% if current_user.is_authenticated %}
+          <span class="badge bg-success">Signed in</span>
+          <span class="ms-2">{{ current_user.name or 'User' }} ({{ current_user.email }})</span>
+        {% elif guest_id %}
+          <span class="badge bg-secondary">Guest session</span>
+          <span class="ms-2">{{ guest_id[:8] }}…</span>
+        {% else %}
+          <span class="badge bg-warning text-dark">No session</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <hr class="app-container">
+
+  <div class="app-container">
+    <form method="POST">
+      {% for col in question_columns %}
+        {% set sel = (input_values[loop.index0] if input_values is not none else None) %}
+        <div class="q">
+          <label><strong>{{ loop.index }}.</strong> {{ question_map[col] }}</label><br>
+          <select name="{{ col }}" required>
+            <option value="1" {% if sel == 1 %}selected{% endif %}>{{ opt1 }}</option>
+            <option value="2" {% if sel == 2 %}selected{% endif %}>{{ opt2 }}</option>
+            <option value="3" {% if sel == 3 %}selected{% endif %}>{{ opt3 }}</option>
+            <option value="4" {% if sel == 4 %}selected{% endif %}>{{ opt4 }}</option>
+          </select>
+        </div>
+      {% endfor %}
+
+      {% if current_user.is_authenticated %}
+        <div class="form-check mt-3">
+          <input class="form-check-input" type="checkbox" id="saveResult" name="save_result" value="on">
+          <label class="form-check-label" for="saveResult">{{ save_txt }}</label>
+        </div>
+        <div class="form-check mt-1">
+          <input class="form-check-input" type="checkbox" id="storeRaw" name="store_raw" value="on">
+          <label class="form-check-label" for="storeRaw">{{ store_raw_txt }}</label>
+        </div>
+      {% endif %}
+
+      <button type="submit" class="btn btn-primary mt-3 predict-btn">{{ predict_txt }}</button>
+    </form>
+  </div>
+
+  {% if depression %}
+    {% set labels = [g.label_map[0], g.label_map[1], g.label_map[2]] %}
+    <div class="app-container">
+      <div class="result mt-4">
+        <h3 class="mb-2">{{ pred_header }}</h3>
+        {% set any_mismatch = ((depression and rule_dep and depression != rule_dep)
+                               or (anxiety and rule_anx and anxiety != rule_anx)
+                               or (stress and rule_str and stress != rule_str)) %}
+        {% if any_mismatch %}
+          <div class="alert alert-info mt-2">{{ mismatch_note }}</div>
+        {% endif %}
+
+        <div class="cols mt-3">
+          <div class="box">
+            <p class="mb-2"><b>{{ dep_lbl }}:</b> {{ depression }}</p>
+            <div class="probs">
+              {% for p in d_proba %}
+                {% set pct = (p*100) | round(1) %}
+                <div>{{ labels[loop.index0] }}</div>
+                <div class="bar" data-width="{{ pct }}"><span></span></div>
+              {% endfor %}
+            </div>
+            {% if d_limited %}
+              <div class="alert alert-warning py-2 px-3">{{ limited_note }}</div>
+            {% endif %}
+            {% if d_top %}
+              <div class="muted">{{ topq }}:</div>
+              <ul class="mb-0">
+                {% for t in d_top %}
+                  <li><b>{{ t.code }}</b> — {{ t.text }} (|SHAP|={{ t.abs }}, sign={{ t.signed }})</li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <div class="muted">{{ no_topq }}</div>
+            {% endif %}
+          </div>
+
+          <div class="box">
+            <p class="mb-2"><b>{{ anx_lbl }}:</b> {{ anxiety }}</p>
+            <div class="probs">
+              {% for p in a_proba %}
+                {% set pct = (p*100) | round(1) %}
+                <div>{{ labels[loop.index0] }}</div>
+                <div class="bar" data-width="{{ pct }}"><span></span></div>
+              {% endfor %}
+            </div>
+            {% if a_limited %}
+              <div class="alert alert-warning py-2 px-3">{{ limited_note }}</div>
+            {% endif %}
+            {% if a_top %}
+              <div class="muted">{{ topq }}:</div>
+              <ul class="mb-0">
+                {% for t in a_top %}
+                  <li><b>{{ t.code }}</b> — {{ t.text }} (|SHAP|={{ t.abs }}, sign={{ t.signed }})</li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <div class="muted">{{ no_topq }}</div>
+            {% endif %}
+          </div>
+
+          <div class="box">
+            <p class="mb-2"><b>{{ str_lbl }}:</b> {{ stress }}</p>
+            <div class="probs">
+              {% for p in s_proba %}
+                {% set pct = (p*100) | round(1) %}
+                <div>{{ labels[loop.index0] }}</div>
+                <div class="bar" data-width="{{ pct }}"><span></span></div>
+              {% endfor %}
+            </div>
+            {% if s_limited %}
+              <div class="alert alert-warning py-2 px-3">{{ limited_note }}</div>
+            {% endif %}
+            {% if s_top %}
+              <div class="muted">{{ topq }}:</div>
+              <ul class="mb-0">
+                {% for t in s_top %}
+                  <li><b>{{ t.code }}</b> — {{ t.text }} (|SHAP|={{ t.abs }}, sign={{ t.signed }})</li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <div class="muted">{{ no_topq }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if rule_dep is defined or rule_anx is defined or rule_str is defined %}
+          <div class="box mt-3">
+            <p class="mb-1"><b>{{ rule_hdr }}:</b>
+              {% if rule_dep is defined %} {{ dep_lbl }}: {{ rule_dep }}{% endif %}
+              {% if rule_anx is defined %} | {{ anx_lbl }}: {{ rule_anx }}{% endif %}
+              {% if rule_str is defined %} | {{ str_lbl }}: {{ rule_str }}{% endif %}
+            </p>
+            <p class="muted mb-0">
+              {% if g.lang=='si' %}
+                මෙවා ඔබගේ පිළිතුරු මත පදනම් වූ DASS-42 සම්මත සීමා භාවිතා කර ගණනය කර ඇත.
+              {% else %}
+                These are computed directly from your answers using standard DASS-42 thresholds.
+              {% endif %}
+            </p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+
+  <script>
+    document.querySelectorAll('.bar').forEach(function(b) {
+      var pct = b.getAttribute('data-width');
+      var span = b.querySelector('span');
+      if (span && pct !== null) { span.style.width = pct + '%'; }
+    });
+    function setTheme(mode) {
+      document.documentElement.setAttribute('data-theme', mode);
+      document.documentElement.setAttribute('data-bs-theme', mode);
+      localStorage.setItem('theme', mode);
+    }
+    document.getElementById('themeLight').addEventListener('click', () => setTheme('light'));
+    document.getElementById('themeDark').addEventListener('click', () => setTheme('dark'));
+  </script>
+</body>
+</html>

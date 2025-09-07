@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="{{ 'si' if g.lang == 'si' else 'en' }}">
+<head>
+  <meta charset="utf-8">
+  <title>
+    {% if g.lang == 'si' %}
+      මානසික සෞඛ්‍ය පරීක්ෂණය – පිවිසුම් පිටුව
+    {% else %}
+      Mental Health Screening – Welcome
+    {% endif %}
+  </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+    (function() {
+      const saved = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = saved || (prefersDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+      document.documentElement.setAttribute('data-bs-theme', theme);
+    })();
+  </script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/theme.css') }}" rel="stylesheet">
+</head>
+<body>
+  <div class="container py-5 app-container">
+    <div class="row justify-content-center">
+      <div class="col-xl-10 col-lg-11">
+        <div class="p-4 p-md-5 hero">
+          <div class="d-flex align-items-center mb-3">
+            <span class="badge badge-soft me-2">
+              {% if g.lang == 'si' %}ගවේෂණය{% else %}Research{% endif %}
+            </span>
+            <small class="text-muted">
+              {% if g.lang == 'si' %}අනුමتي අනුවාදය{% else %}Consent version{% endif %}: {{ consent_version }}
+            </small>
+          </div>
+
+          <div class="d-flex flex-wrap align-items-center justify-content-between mb-2 gap-2">
+            <h1 class="h3 mb-0">
+              {% if g.lang == 'si' %}
+                මානසික සෞඛ්‍ය පරීක්ෂණය (DASS-42)
+              {% else %}Mental Health Screening (DASS-42){% endif %}
+            </h1>
+
+            <div class="d-flex align-items-center gap-2">
+              <a href="{{ url_for('reviews') }}" class="btn btn-outline-info btn-sm">
+                {% if g.lang=='si' %}විමසුම්{% else %}Reviews{% endif %}
+              </a>
+
+              <div class="btn-group">
+                <a href="{{ url_for('set_language', code='en') }}"
+                   class="btn btn-sm btn-outline-secondary {% if g.lang == 'en' %}active{% endif %}">EN</a>
+                <a href="{{ url_for('set_language', code='si') }}"
+                   class="btn btn-sm btn-outline-secondary {% if g.lang == 'si' %}active{% endif %}">සි</a>
+              </div>
+
+              <div class="btn-group" role="group" aria-label="Theme">
+                <button id="themeLight" type="button" class="btn btn-sm btn-outline-secondary" title="Light">
+                  <i class="bi bi-sun"></i>
+                </button>
+                <button id="themeDark" type="button" class="btn btn-sm btn-outline-secondary" title="Dark">
+                  <i class="bi bi-moon-stars"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <p class="mb-4">
+            {% if g.lang == 'si' %}
+              මෙම පද්ධතිය DASS-42 ප්‍රශ්නාවලියට ඔබේ පිළිතුරු එකතු කර, යන්ත්‍ර ඉගෙනීම
+              (Logistic Regression) උපයෝගී කරගෙන <strong>මානසික අවපීඩනය</strong>, <strong>කාංසාව</strong>,
+              හා <strong>ආතතිය</strong> පිළිබඳ ආරම්භක පුවත්දීමක් ලබා දේ.
+              ප්‍රතිඵල පැහැදිලි කිරීමට SHAP මගින් කාරණාදායක ලක්ෂණද පෙන්වයි.
+            {% else %}
+              This system collects your DASS-42 responses and uses
+              machine learning (Logistic Regression) to give an early indication of
+              <strong>Depression</strong>, <strong>Anxiety</strong>, and <strong>Stress</strong>.
+              It also explains results with SHAP (feature contribution summaries).
+            {% endif %}
+          </p>
+
+          <div class="alert alert-warning" role="alert">
+            <strong>{% if g.lang == 'si' %}වැදගත්{% else %}Important{% endif %}:</strong>
+            {% if g.lang == 'si' %}
+              මෙය අධ්‍යයනමය <em>පූර්ව පිරික්සුම් මෙවලමක්</em> පමණි. මෙය වෛද්‍යවරු
+              නිර්ණයකොට හෝ වෛද්‍යමය උපදේශන සඳහා නොවේ. ඔබගේ මානසික සෞඛ්‍යය පිළිබඳ
+              කිසියම් ගැටළුවක් ඇත්නම්, කරුණාකර සුදුසුකම් ලත් වෘත්තිකයෙකුගෙන් විමසන්න.
+            {% else %}
+              This is an <em>early screening tool</em> for academic research.
+              It is <u>not</u> a diagnostic or clinical system. If you have concerns,
+              please consult a qualified professional.
+            {% endif %}
+          </div>
+
+          <div class="consent-box mb-4 p-3 border border-warning rounded">
+            <h2 class="h5 mb-3 text-danger">
+              <i class="bi bi-exclamation-triangle-fill me-1"></i>
+              {% if g.lang == 'si' %}අනුමතිය අවශ්‍යයි{% else %}Consent Required{% endif %}
+            </h2>
+
+            <ul class="mb-3">
+              <li>
+                <strong>{% if g.lang == 'si' %}රහස්ය හා අරමුණ{% else %}Purpose{% endif %}:</strong>
+                {% if g.lang == 'si' %}
+                  අධ්‍යයන නිබන්ධනය/පර්යේෂණ සහ පද්ධතියේ තත්ත්වයේ ඇගයීම සඳහා දත්ත භාවිතා කරයි.
+                {% else %}
+                  Academic thesis/research and system quality evaluation.
+                {% endif %}
+              </li>
+              <li>
+                <strong>{% if g.lang == 'si' %}සංරක්ෂණ කාලය{% else %}Retention{% endif %}:</strong>
+                {{ consent_retention }}
+              </li>
+              <li>
+                <strong>{% if g.lang == 'si' %}මකා දැමීමේ ඉල්ලීම්{% else %}Deletion requests{% endif %}:</strong>
+                {% if g.lang == 'si' %}
+                  <a href="mailto:{{ consent_contact }}">{{ consent_contact }}</a> වෙත විද්‍යුත් තැපෑලක් යොමු කර ඉල්ලීමක් කළ හැක.
+                {% else %}
+                  Email <a href="mailto:{{ consent_contact }}">{{ consent_contact }}</a> to request deletion.
+                {% endif %}
+              </li>
+              <li>
+                <strong>{% if g.lang == 'si' %}ආරක්ෂාව{% else %}Security{% endif %}:</strong>
+                {% if g.lang == 'si' %}
+                  ගිණුම් මුරපද hashed (ස්ථාපිත) කර සුරකින්නෙමු. අපි ඔබේ දත්ත පිටතට යවන්නේ නැත.
+                {% else %}
+                  Passwords are stored hashed; we do not share your data.
+                {% endif %}
+              </li>
+            </ul>
+
+            {% if consent_error %}
+              <div class="alert alert-danger py-2">{{ consent_error }}</div>
+            {% endif %}
+
+            <div class="form-check mt-2">
+              <input class="form-check-input border-danger" type="checkbox" id="consentCheck">
+              <label class="form-check-label fw-bold" for="consentCheck">
+                {% if g.lang == 'si' %}
+                  ඉහත අනුමතිය හා රහස්‍යතා නියමයන් කියවා එකඟ බව තහවුරු කරමි.
+                {% else %}
+                  I have read and agree to the consent and privacy terms above.
+                {% endif %}
+              </label>
+            </div>
+          </div>
+
+          <form method="post" id="homeForm">
+            <input type="hidden" name="consent_checked" id="consentCheckedField" value="off">
+
+            <div class="row g-3">
+              <div class="col-md-4">
+                <div class="card card-action h-100 p-3" id="cardLogin">
+                  <h3 class="h5">{% if g.lang == 'si' %}පිවිසුම{% else %}Login{% endif %}</h3>
+                  <p class="mb-3 text-muted">
+                    {% if g.lang == 'si' %}ඔබගේ ඉතිහාසය බලාගැනීමට ඔබගේ ගිණුමට පිවිසෙන්න.{% else %}
+                      Access your account to view history and continue.
+                    {% endif %}
+                  </p>
+                  <button type="submit" name="action" value="login" class="btn btn-primary w-100" disabled>
+                    {% if g.lang == 'si' %}පිවිසුමට යන්න{% else %}Go to Login{% endif %}
+                  </button>
+                </div>
+              </div>
+
+              <div class="col-md-4">
+                <div class="card card-action h-100 p-3" id="cardSignup">
+                  <h3 class="h5">{% if g.lang == 'si' %}ගිණුමක් සාදන්න{% else %}Sign up{% endif %}</h3>
+                  <p class="mb-3 text-muted">
+                    {% if g.lang == 'si' %}ඊමේල් හා මුරපදයක් භාවිතා කර ගිණුමක් සාදන්න.{% else %}
+                      Create an account using email & password.
+                    {% endif %}
+                  </p>
+                  <button type="submit" name="action" value="signup" class="btn btn-success w-100" disabled>
+                    {% if g.lang == 'si' %}ගිණුම සාදන්න{% else %}Create Account{% endif %}
+                  </button>
+                </div>
+              </div>
+
+              <div class="col-md-4">
+                <div class="card card-action h-100 p-3" id="cardGuest">
+                  <h3 class="h5">{% if g.lang == 'si' %}අමුත්තෙකු ලෙස ඉදිරියට{% else %}Continue as Guest{% endif %}</h3>
+                  <p class="mb-3 text-muted">
+                    {% if g.lang == 'si' %}ගිණුමක් තැනීමකින් තොරව ඇගයීම සිදු කරන්න.{% else %}
+                      Try the assessment without creating an account.
+                    {% endif %}
+                  </p>
+                  <button type="submit" name="action" value="guest" class="btn btn-secondary w-100" disabled>
+                    {% if g.lang == 'si' %}ඉදිරියට යන්න{% else %}Continue{% endif %}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+
+          <hr class="my-4">
+
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <p class="footer-note mb-0">
+              {% if g.lang == 'si' %}
+                ඉදිරියට යාමෙන්, ඔබ 18+ වයසක බවත් මෙය අධ්‍යයනමය පර්යේෂණ මෙවලමක් බවත් තේරුම් කරයි.
+                හදිසි අවශ්‍යතාවයකදී, කරුණාකර අකාල වෛද්‍ය/මානසික සෞඛ්‍ය සේවාවන් අමතන්න.
+              {% else %}
+                By continuing, you confirm you’re 18+ and understand this is a research tool only.
+                If this is an emergency, contact local mental health services immediately.
+              {% endif %}
+            </p>
+
+            <a href="{{ url_for('admin_login') }}"
+               class="btn btn-outline-danger d-flex align-items-center gap-1">
+              <i class="bi bi-shield-lock"></i>
+              {% if g.lang == 'si' %}පරිපාලක පිවිසුම{% else %}Admin Login{% endif %}
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const consentCheckbox = document.getElementById('consentCheck');
+    const form = document.getElementById('homeForm');
+    const consentField = document.getElementById('consentCheckedField');
+    const buttons = form.querySelectorAll('button[type="submit"]');
+
+    function updateConsentState() {
+      const enabled = consentCheckbox.checked;
+      consentField.value = enabled ? 'on' : 'off';
+      buttons.forEach(btn => btn.disabled = !enabled);
+      document.getElementById('cardLogin').classList.toggle('disabled-card', !enabled);
+      document.getElementById('cardSignup').classList.toggle('disabled-card', !enabled);
+      document.getElementById('cardGuest').classList.toggle('disabled-card', !enabled);
+    }
+    consentCheckbox.addEventListener('change', updateConsentState);
+    updateConsentState();
+
+    function setTheme(mode) {
+      document.documentElement.setAttribute('data-theme', mode);
+      document.documentElement.setAttribute('data-bs-theme', mode);
+      localStorage.setItem('theme', mode);
+    }
+    document.getElementById('themeLight').addEventListener('click', () => setTheme('light'));
+    document.getElementById('themeDark').addEventListener('click', () => setTheme('dark'));
+  </script>
+</body>
+</html>

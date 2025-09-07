@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="{{ 'si' if g.lang == 'si' else 'en' }}">
+<head>
+  <meta charset="utf-8">
+  <title>
+    {% if g.lang == 'si' %}ඇස්තමේන්තු විස්තර – මානසික සෞඛ්‍ය තක්සේරුව{% else %}Assessment Details – Mental Health Screening{% endif %}
+  </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+    (function () {
+      const saved = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = saved || (prefersDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+      document.documentElement.setAttribute('data-bs-theme', theme);
+    })();
+  </script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/theme.css') }}" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-3 mb-2">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      {% if current_user.is_authenticated %}
+        <span class="badge bg-success">{% if g.lang=='si' %}පිවිසි ඇත{% else %}Signed in{% endif %}</span>
+        <span class="ms-2">{{ current_user.name or 'User' }} ({{ current_user.email }})</span>
+      {% elif session.get('anon_id') %}
+        <span class="badge bg-secondary">{% if g.lang=='si' %}අතිථි සැසිය{% else %}Guest session{% endif %}</span>
+        <span class="ms-2">{{ session.get('anon_id')[:8] }}…</span>
+      {% else %}
+        <span class="badge bg-warning text-dark">{% if g.lang=='si' %}සැසියක් නැත{% else %}No session{% endif %}</span>
+      {% endif %}
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <div class="btn-group">
+        <a href="{{ url_for('set_language', code='en') }}" class="btn btn-sm btn-outline-secondary {% if g.lang == 'en' %}active{% endif %}">EN</a>
+        <a href="{{ url_for('set_language', code='si') }}" class="btn btn-sm btn-outline-secondary {% if g.lang == 'si' %}active{% endif %}">සි</a>
+      </div>
+      <div class="btn-group" role="group" aria-label="Theme">
+        <button id="themeLight" type="button" class="btn btn-sm btn-outline-secondary" title="Light">
+          <i class="bi bi-sun"></i>
+        </button>
+        <button id="themeDark" type="button" class="btn btn-sm btn-outline-secondary" title="Dark">
+          <i class="bi bi-moon-stars"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr>
+
+<div class="container pb-5">
+  <h1 class="h4 mb-3">
+    {% if g.lang=='si' %}ඇස්තමේන්තු විස්තර ({{ item.created_at.strftime("%Y-%m-%d %H:%M") }}){% else %}
+    Assessment on {{ item.created_at.strftime("%Y-%m-%d %H:%M") }}{% endif %}
+  </h1>
+
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="card p-3">
+        <h2 class="h6">{% if g.lang=='si' %}මානසික අවපීඩනය{% else %}Depression{% endif %}</h2>
+        <p class="mb-2">
+          {% if g.lang=='si' %}ඇස්තමේන්තු:{% else %}Prediction:{% endif %}
+          <span class="badge bg-{% if item.dep_pred==2 %}danger{% elif item.dep_pred==1 %}warning text-dark{% else %}success{% endif %}">
+            {{ label_map[item.dep_pred] }}
+          </span>
+        </p>
+        <p class="mb-2">
+          {% if g.lang=='si' %}ලකුණ:{% else %}Score:{% endif %} {{ item.dep_score }}
+        </p>
+        <h3 class="h6">{% if g.lang=='si' %}උපරිම දායක ප්‍රශ්න 5{% else %}Top-5 contributors{% endif %}</h3>
+        <ul class="mb-0">
+          {% for it in shap_dep %}
+            <li><strong>{{ it.feature_code }}</strong> ({{ it.feature_value }}) — <em>{{ '%.3f'|format(it.shap_value) }}</em></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card p-3">
+        <h2 class="h6">{% if g.lang=='si' %}කාංසාව{% else %}Anxiety{% endif %}</h2>
+        <p class="mb-2">
+          {% if g.lang=='si' %}ඇස්තමේන්තු:{% else %}Prediction:{% endif %}
+          <span class="badge bg-{% if item.anx_pred==2 %}danger{% elif item.anx_pred==1 %}warning text-dark{% else %}success{% endif %}">
+            {{ label_map[item.anx_pred] }}
+          </span>
+        </p>
+        <p class="mb-2">
+          {% if g.lang=='si' %}ලකුණ:{% else %}Score:{% endif %} {{ item.anx_score }}
+        </p>
+        <h3 class="h6">{% if g.lang=='si' %}උපරිම දායක ප්‍රශ්න 5{% else %}Top-5 contributors{% endif %}</h3>
+        <ul class="mb-0">
+          {% for it in shap_anx %}
+            <li><strong>{{ it.feature_code }}</strong> ({{ it.feature_value }}) — <em>{{ '%.3f'|format(it.shap_value) }}</em></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card p-3">
+        <h2 class="h6">{% if g.lang=='si' %}ආතතිය{% else %}Stress{% endif %}</h2>
+        <p class="mb-2">
+          {% if g.lang=='si' %}ඇස්තමේන්තු:{% else %}Prediction:{% endif %}
+          <span class="badge bg-{% if item.str_pred==2 %}danger{% elif item.str_pred==1 %}warning text-dark{% else %}success{% endif %}">
+            {{ label_map[item.str_pred] }}
+          </span>
+        </p>
+        <p class="mb-2">
+          {% if g.lang=='si' %}ලකුණ:{% else %}Score:{% endif %} {{ item.str_score }}
+        </p>
+        <h3 class="h6">{% if g.lang=='si' %}උපරිම දායක ප්‍රශ්න 5{% else %}Top-5 contributors{% endif %}</h3>
+        <ul class="mb-0">
+          {% for it in shap_str %}
+            <li><strong>{{ it.feature_code }}</strong> ({{ it.feature_value }}) — <em>{{ '%.3f'|format(it.shap_value) }}</em></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  {% if item.raw_answers_json %}
+    <div class="card p-3 mt-3">
+      <h2 class="h6">{% if g.lang=='si' %}මූලික පිළිතුරු (විකල්පය){% else %}Raw answers (opt-in){% endif %}</h2>
+      <pre class="small mb-0">{{ item.raw_answers_json }}</pre>
+    </div>
+  {% endif %}
+
+  <div class="mt-3">
+    <a class="btn btn-outline-primary" href="{{ url_for('user_panel') }}">
+      {% if g.lang=='si' %}ආපසු පුවරුව{% else %}Back to User Panel{% endif %}
+    </a>
+  </div>
+</div>
+
+<script>
+  function setTheme(mode) {
+    document.documentElement.setAttribute('data-theme', mode);
+    document.documentElement.setAttribute('data-bs-theme', mode);
+    localStorage.setItem('theme', mode);
+  }
+  document.getElementById('themeLight').addEventListener('click', () => setTheme('light'));
+  document.getElementById('themeDark').addEventListener('click', () => setTheme('dark'));
+</script>
+</body>
+</html>

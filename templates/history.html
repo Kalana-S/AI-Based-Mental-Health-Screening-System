@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="{{ 'si' if g.lang == 'si' else 'en' }}">
+<head>
+  <meta charset="utf-8">
+  <title>
+    {% if g.lang == 'si' %}ඔබගේ ඉතිහාසය – මානසික සෞඛ්‍ය තක්සේරුව{% else %}Your History – Mental Health Screening{% endif %}
+  </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+    (function() {
+      const saved = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = saved || (prefersDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+      document.documentElement.setAttribute('data-bs-theme', theme);
+    })();
+  </script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/theme.css') }}" rel="stylesheet">
+</head>
+<body>
+
+{% if g.lang == 'si' %}
+  {% set t_signed_in = "පිවිසි ඇත" %}
+  {% set t_no_session = "සිෂන් නැත" %}
+  {% set t_new_assessment = "නව ඇස්තමේන්තුකරණය" %}
+  {% set t_delete_all = "සම්පූර්ණ ඉතිහාසය මකන්න" %}
+  {% set t_delete_all_confirm = "ඔබගේ සියලු ඉතිහාසයම මැකේ. මෙය ආපසුPlanner කළ නොහැක. මැකීමට කැමතිද?" %}
+  {% set t_logout = "පිටවීම" %}
+  {% set t_history = "ඇස්තමේන්තු ඉතිහාසය" %}
+  {% set t_empty = "සුරකින ලද ඇස්තමේන්තු නොමැත." %}
+  {% set t_date = "දිනය (UTC)" %}
+  {% set t_depression = "මානසික අවපීඩනය" %}
+  {% set t_anxiety = "කාංසාව" %}
+  {% set t_stress = "ආතතිය" %}
+  {% set t_scores = "ලකුණු (D/A/S)" %}
+  {% set t_actions = "ක්‍රියා" %}
+  {% set t_view = "දැක්ම" %}
+  {% set t_tips = "උපදෙස්" %}
+  {% set t_delete = "මකන්න" %}
+  {% set t_delete_one_confirm = "මෙම සටහන මැකේ. මෙය ආපසුPlanner කළ නොහැක. මැකීමට කැමතිද?" %}
+{% else %}
+  {% set t_signed_in = "Signed in" %}
+  {% set t_no_session = "No session" %}
+  {% set t_new_assessment = "New Assessment" %}
+  {% set t_delete_all = "Delete all history" %}
+  {% set t_delete_all_confirm = "Delete ALL your history? This cannot be undone." %}
+  {% set t_logout = "Log out" %}
+  {% set t_history = "Assessment History" %}
+  {% set t_empty = "No saved assessments yet." %}
+  {% set t_date = "Date (UTC)" %}
+  {% set t_depression = "Depression" %}
+  {% set t_anxiety = "Anxiety" %}
+  {% set t_stress = "Stress" %}
+  {% set t_scores = "Scores (D/A/S)" %}
+  {% set t_actions = "Actions" %}
+  {% set t_view = "View" %}
+  {% set t_tips = "Tips" %}
+  {% set t_delete = "Delete" %}
+  {% set t_delete_one_confirm = "Delete this entry? This cannot be undone." %}
+{% endif %}
+
+<div class="container mt-3">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      {% if current_user.is_authenticated %}
+        <span class="badge bg-success">{{ t_signed_in }}</span>
+        <span class="ms-2">{{ current_user.name or 'User' }} ({{ current_user.email }})</span>
+      {% else %}
+        <span class="badge bg-warning text-dark">{{ t_no_session }}</span>
+      {% endif %}
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <a class="btn btn-outline-primary btn-sm" href="{{ url_for('user_panel') }}">
+        {% if g.lang == 'si' %}පුවරුව{% else %}User Panel{% endif %}
+      </a>
+      <a class="btn btn-outline-success btn-sm" href="{{ url_for('assessment') }}">
+        <i class="bi bi-plus-circle me-1"></i>{{ t_new_assessment }}
+      </a>
+      {% if items and items|length > 0 %}
+      <form method="post" action="{{ url_for('history_delete_all') }}" class="d-inline">
+        {{ delete_all_form.hidden_tag() }}
+        <button type="submit" class="btn btn-outline-danger btn-sm"
+                onclick="return confirm('{{ t_delete_all_confirm }}');">
+          <i class="bi bi-trash3 me-1"></i>{{ t_delete_all }}
+        </button>
+      </form>
+      {% endif %}
+      <div class="btn-group">
+        <a href="{{ url_for('set_language', code='en') }}" 
+           class="btn btn-sm btn-outline-secondary {% if g.lang == 'en' %}active{% endif %}">EN</a>
+        <a href="{{ url_for('set_language', code='si') }}" 
+           class="btn btn-sm btn-outline-secondary {% if g.lang == 'si' %}active{% endif %}">සි</a>
+      </div>
+      <div class="btn-group" role="group" aria-label="Theme">
+        <button id="themeLight" type="button" class="btn btn-sm btn-outline-secondary" title="Light">
+          <i class="bi bi-sun"></i>
+        </button>
+        <button id="themeDark" type="button" class="btn btn-sm btn-outline-secondary" title="Dark">
+          <i class="bi bi-moon-stars"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="my-3">
+
+<div class="container pb-5">
+  <h1 class="h4 mb-3">{{ t_history }}</h1>
+
+  {% if not items or items|length == 0 %}
+    <div class="alert alert-info">{{ t_empty }}</div>
+  {% else %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>{{ t_date }}</th>
+            <th>{{ t_depression }}</th>
+            <th>{{ t_anxiety }}</th>
+            <th>{{ t_stress }}</th>
+            <th>{{ t_scores }}</th>
+            <th class="text-end">{{ t_actions }}</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for a in items %}
+          <tr>
+            <td>{{ a.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+            <td>
+              <span class="badge bg-{% if a.dep_pred==2 %}danger{% elif a.dep_pred==1 %}warning text-dark{% else %}success{% endif %}">
+                {{ label_map[a.dep_pred] }}
+              </span>
+            </td>
+            <td>
+              <span class="badge bg-{% if a.anx_pred==2 %}danger{% elif a.anx_pred==1 %}warning text-dark{% else %}success{% endif %}">
+                {{ label_map[a.anx_pred] }}
+              </span>
+            </td>
+            <td>
+              <span class="badge bg-{% if a.str_pred==2 %}danger{% elif a.str_pred==1 %}warning text-dark{% else %}success{% endif %}">
+                {{ label_map[a.str_pred] }}
+              </span>
+            </td>
+            <td>{{ a.dep_score }} / {{ a.anx_score }} / {{ a.str_score }}</td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-info me-2 text-white"
+                 href="{{ url_for('history_detail', assessment_id=a.id) }}">
+                <i class="bi bi-eye"></i> {{ t_view }}
+              </a>
+              <a class="btn btn-sm btn-success me-2"
+                 href="{{ url_for('advice_page', assessment_id=a.id) }}">
+                <i class="bi bi-lightbulb"></i> {{ t_tips }}
+              </a>
+              <form method="post"
+                    action="{{ url_for('history_delete_one', assessment_id=a.id) }}"
+                    class="d-inline">
+                {{ delete_one_form.hidden_tag() }}
+                <button type="submit"
+                        class="btn btn-sm btn-danger"
+                        onclick="return confirm('{{ t_delete_one_confirm }}');">
+                  <i class="bi bi-trash"></i> {{ t_delete }}
+                </button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</div>
+
+<script>
+  function setTheme(mode) {
+    document.documentElement.setAttribute('data-theme', mode);
+    document.documentElement.setAttribute('data-bs-theme', mode);
+    localStorage.setItem('theme', mode);
+  }
+  document.getElementById('themeLight').addEventListener('click', () => setTheme('light'));
+  document.getElementById('themeDark').addEventListener('click', () => setTheme('dark'));
+</script>
+</body>
+</html>
