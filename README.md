@@ -66,7 +66,6 @@ This project uses the DASS-42 questionnaire dataset for model training and evalu
 ![image](./static/user_panel.png)
 ![image](./static/assessment.png)
 ![image](./static/history.png)
-
 ## 🤝 Contribution
 Pull requests are welcome! For major changes, please open an issue first to discuss what you'd like to improve.
 
