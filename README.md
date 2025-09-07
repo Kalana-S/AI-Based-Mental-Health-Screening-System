@@ -13,7 +13,6 @@ This is a machine learning-powered web application built with **Python, Flask, a
 
 ## 🩺 Input Parameters
 - DASS-42 questionnaire responses (42 questions)
-- Optional: Raw answers for detailed tracking
 - User account details (if registered)
 
 ## 🧰 Technologies Used
