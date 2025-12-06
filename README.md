@@ -1,6 +1,6 @@
 # 🧠 AI-Based Mental Health Screening System
 
-This is a machine learning-powered web application built with **Python, Flask, and SHAP**, designed to screen for **Depression, Anxiety, and Stress** using the standardized **DASS-42** questionnaire. It provides **explainable AI (XAI)** outputs, user history, interactive plots, and bilingual (English/Sinhala) support.
+This is a machine learning-powered web application built with **Python, Flask, and SHAP**, designed to screen for **Depression, Anxiety, and Stress** using the standardized **DASS-42** questionnaire. It provides **explainable AI (XAI)** outputs, user history, interactive plots, and **bilingual (English/Sinhala)** support.
 
 ## 🚀 Features
 - Predicts **Depression, Anxiety, and Stress** severity levels (Normal / Moderate / Severe).
