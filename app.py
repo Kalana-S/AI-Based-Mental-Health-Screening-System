@@ -160,15 +160,15 @@ class ReviewForm(FlaskForm):
     comment = TextAreaField(_("Comments (optional)"), validators=[Optional(), Length(max=2000)])
     submit = SubmitField(_("Submit review"))
 
-depression_model = pickle.load(open("depression_model.pkl", "rb"))
-anxiety_model    = pickle.load(open("anxiety_model.pkl", "rb"))
-stress_model     = pickle.load(open("stress_model.pkl", "rb"))
+depression_model = pickle.load(open("models/depression_model.pkl", "rb"))
+anxiety_model    = pickle.load(open("models/anxiety_model.pkl", "rb"))
+stress_model     = pickle.load(open("models/stress_model.pkl", "rb"))
 
-depression_scaler = pickle.load(open("depression_scaler.pkl", "rb"))
-anxiety_scaler    = pickle.load(open("anxiety_scaler.pkl", "rb"))
-stress_scaler     = pickle.load(open("stress_scaler.pkl", "rb"))
+depression_scaler = pickle.load(open("models/depression_scaler.pkl", "rb"))
+anxiety_scaler    = pickle.load(open("models/anxiety_scaler.pkl", "rb"))
+stress_scaler     = pickle.load(open("models/stress_scaler.pkl", "rb"))
 
-with open("model_columns.json", "r", encoding="utf-8") as f:
+with open("json/model_columns.json", "r", encoding="utf-8") as f:
     question_columns = json.load(f)["columns"]
 
 dep_cols = ["Q3A","Q5A","Q10A","Q13A","Q16A","Q17A","Q21A","Q24A","Q26A","Q31A","Q34A","Q37A","Q38A","Q42A"]
@@ -270,7 +270,7 @@ def set_language(code):
     session["lang"] = code if code in LANGUAGES else "en"
     return redirect(request.referrer or url_for("home"))
 
-I18N_DIR = Path(__file__).parent / "i18n"
+I18N_DIR = Path(__file__).parent / "json"
 
 LABEL_MAPS = {
     "en": {0: "Normal", 1: "Moderate", 2: "Severe"},
