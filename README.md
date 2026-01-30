@@ -2,6 +2,8 @@
 
 This is a machine learning-powered web application built with **Python, Flask, and SHAP**, designed to screen for **Depression, Anxiety, and Stress** using the standardized **DASS-42** questionnaire. It provides **explainable AI (XAI)** outputs, user history, interactive plots, and **bilingual (English/Sinhala)** support.
 
+---
+
 ## 🚀 Features
 - Predicts **Depression, Anxiety, and Stress** severity levels (Normal / Moderate / Severe).
 - Built with **Logistic Regression** and SHAP for transparent predictions.
@@ -11,9 +13,13 @@ This is a machine learning-powered web application built with **Python, Flask, a
 - Personalized **tips & recommendations** based on results.
 - Admin panel for **content management** and **system logs**.
 
+---
+
 ## 🩺 Input Parameters
 - DASS-42 questionnaire responses (42 questions)
 - User account details (if registered)
+
+---
 
 ## 🧰 Technologies Used
 - **Python** – Core development
@@ -23,6 +29,8 @@ This is a machine learning-powered web application built with **Python, Flask, a
 - **Plotly** – Interactive plots and graphs
 - **HTML, CSS, Bootstrap** – Frontend UI
 - **Pickle, JSON** – Model & metadata storage
+
+---
 
 ## 📁 Files Included
 - `app.py` – Flask app entry point
@@ -34,6 +42,8 @@ This is a machine learning-powered web application built with **Python, Flask, a
 - `requirements.txt` – Project dependencies
 - `README.md` – Project documentation
 - `ML_Model.ipynb` – Jupyter notebook for training models
+
+---
 
 ## ⚙️ Installation & Setup
 1. Clone the repository:
@@ -58,16 +68,27 @@ This is a machine learning-powered web application built with **Python, Flask, a
    ```
 5. Open your browser and go to `http://127.0.0.1:5000`
 
+---
+
 ## 📂 Dataset
 This project uses the **DASS-42 questionnaire** dataset for model training and evaluation. Make sure the dataset files are in the project root folder if retraining is required.
 
+---
+
 ## 📸 Screenshots
-![image](./static/home.png)
-![image](./static/user_panel.png)
-![image](./static/assessment.png)
-![image](./static/history.png)
+
+| Home Page | User Panel |
+| :---: | :---: |
+| ![Home](./static/home.png) | ![User Panel](./static/user_panel.png) |
+| **Assessment Page** | **User History** |
+| ![Assessment](./static/assessment.png) | ![History](./static/history.png) |
+
+---
+
 ## 🤝 Contribution
 Pull requests are welcome! For major changes, please open an issue first to discuss what you'd like to improve.
+
+---
 
 ## 📜 License
 This project is licensed under the MIT License – see the `LICENSE` file for details.
